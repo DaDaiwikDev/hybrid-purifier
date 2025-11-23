@@ -1,74 +1,50 @@
-import { Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { ScrollControls, Scroll } from '@react-three/drei'
-import SceneContent from './components/SceneContent' // We will create this
-import Overlay from './components/Overlay' // Your existing HUD
+import { ReactLenis } from 'lenis/react'
 import Navbar from './components/Navbar'
-import LoadingScreen from './components/LoadingScreen' // Optional loader
+import Scene from './components/Scene'
+import Overlay from './components/Overlay'
+import StorySection from './components/StorySection'
+import BentoGrid from './components/BentoGrid'
+import Specs from './components/Specs'
+import Footer from './components/Footer'
 
 export default function App() {
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
-      <Navbar />
-      
-      {/* THE 3D CANVAS (Fixed Background) */}
-      <Canvas shadows camera={{ position: [0, 0, 7], fov: 35 }} gl={{ antialias: true }}>
-        <color attach="background" args={['#050505']} />
+    <ReactLenis root>
+      <div className="relative w-full min-h-screen bg-black text-white selection:bg-blue-500/30">
         
-        {/* SCROLL CONTROLS: This creates the "Pages" */}
-        <ScrollControls pages={5} damping={0.2}>
+        {/* LAYER 1: FIXED 3D BACKGROUND (Z-0) */}
+        <div className="fixed top-0 left-0 w-full h-screen z-0">
+          <Scene />
+        </div>
+
+        {/* LAYER 2: SCROLLABLE WEBSITE CONTENT (Z-10) */}
+        {/* This contains the spacer + the actual website parts */}
+        <div className="relative z-10">
           
-          {/* LAYER 1: The 3D Model (Reacts to scroll) */}
-          <Suspense fallback={null}>
-            <SceneContent />
-          </Suspense>
+          {/* SPACER: Keeps the top clear for the simulation */}
+          {/* pointer-events-none ensures you can click the 3D model/Overlay through it */}
+          <section className="h-screen w-full pointer-events-none" /> 
 
-          {/* LAYER 2: The HTML Content (Scrolls over the model) */}
-          <Scroll html style={{ width: '100%' }}>
-            
-            {/* PAGE 1: HERO (Empty because Overlay.jsx handles it) */}
-            <section className="h-screen w-full pointer-events-none" />
+          {/* THE CONTENT DECK */}
+          <div className="relative bg-black/95 backdrop-blur-3xl border-t border-white/10 shadow-[0_-50px_150px_rgba(0,0,0,1)] pointer-events-auto">
+            <StorySection />
+            <BentoGrid />
+            <Specs />
+            <Footer />
+          </div>
+        </div>
 
-            {/* PAGE 2: EXPLOSION TEXT */}
-            <section className="h-screen w-full flex items-center justify-start px-24 pointer-events-none">
-              <div className="max-w-lg">
-                <h2 className="text-5xl font-bold text-white mb-4">Precision Engineering</h2>
-                <p className="text-white/60 text-lg">
-                  The chassis separates to reveal the industry's first Hybrid-PBR architecture.
-                </p>
-              </div>
-            </section>
+        {/* LAYER 3: FIXED HUD / OVERLAY (Z-40) */}
+        {/* Moved BELOW the content div in code, but higher Z-index */}
+        {/* pointer-events-none on wrapper, auto on children (handled in component) */}
+        <div className="fixed top-0 left-0 w-full h-screen z-40 pointer-events-none">
+           <Overlay />
+        </div>
 
-            {/* PAGE 3: HEPA DETAILS */}
-            <section className="h-screen w-full flex items-center justify-end px-24 pointer-events-none">
-              <div className="text-right max-w-lg">
-                <h2 className="text-5xl font-bold text-blue-400 mb-4">Medical Grade HEPA</h2>
-                <p className="text-white/60 text-lg">
-                  H13 Filtration captures 99.97% of particulates down to 0.3 microns.
-                </p>
-              </div>
-            </section>
+        {/* LAYER 4: NAVIGATION (Z-50) */}
+        <Navbar />
 
-            {/* PAGE 4: BIO-REACTOR DETAILS */}
-            <section className="h-screen w-full flex items-center justify-start px-24 pointer-events-none">
-              <div className="max-w-lg">
-                <h2 className="text-5xl font-bold text-emerald-400 mb-4">Living Core</h2>
-                <p className="text-white/60 text-lg">
-                  120L Algae Tank fixes CO2 and generates fresh Oxygen in real-time.
-                </p>
-              </div>
-            </section>
-
-          </Scroll>
-        </ScrollControls>
-        
-        {/* Your Fixed Overlay (Search bar etc) sits ON TOP of scroll controls */}
-      </Canvas>
-      
-      {/* We keep Overlay outside Canvas so buttons work on Page 0 */}
-      <div className="fixed inset-0 z-50 pointer-events-none">
-        <Overlay />
       </div>
-    </div>
+    </ReactLenis>
   )
 }
