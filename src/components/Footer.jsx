@@ -20,7 +20,7 @@ export default function Footer() {
         </div>
 
         <p className="text-xs text-white/30">
-          © 2025 Platinum Jubilee High School. <br/> STEM Project ID: 53rd-RSBVP
+          © 2025 3K5S SUBSIDARY EKOCHEZH . <br/> STEM Project ID: 53rd-RSBVP
         </p>
       </div>
     </footer>
