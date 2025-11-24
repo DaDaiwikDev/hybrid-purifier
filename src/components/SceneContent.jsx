@@ -1,41 +1,39 @@
 import { useFrame } from '@react-three/fiber'
-import { Environment, ContactShadows, Float, OrbitControls } from '@react-three/drei'
+import { ContactShadows, Float, OrbitControls } from '@react-three/drei'
 import { useRef, useState, useEffect } from 'react'
 import { useStore } from '../store'
 import * as THREE from 'three'
 
-function TimeController() {
-  const { time, setTime, isPlaying, simSpeed } = useStore()
-  useFrame((state, delta) => {
-    if (isPlaying) {
-      const timeShift = delta * simSpeed * 0.5 
-      let newTime = time + timeShift
-      if (newTime >= 24) newTime = 0
-      if (newTime < 0) newTime = 24
-      setTime(newTime)
-    }
-  })
-  return null
-}
-
-function SeriesXTower({ scrollOffset }) {
+// --- 3D MODEL COMPONENT ---
+function SeriesXTower({ scrollOffset, mode }) {
   const { aqi, xRayMode } = useStore()
-  
   const groupRef = useRef()
   const casingRef = useRef(); const bioCoreRef = useRef(); const hepaRef = useRef(); const baseRef = useRef();
 
   useFrame((state, delta) => {
-    // 1. INTERNAL FAN PHYSICS (Always spins, this gives it life)
-    const targetSpeed = aqi > 150 ? 2.0 : 0.5
-    if (bioCoreRef.current) bioCoreRef.current.rotation.y += delta * targetSpeed * 0.5
+    // --- BEHAVIOR 1: INTERACTIVE MODE (Simulation Page) ---
+    if (mode === 'interactive') {
+        // Always Spin Fan
+        const targetSpeed = aqi > 150 ? 2.0 : 0.5
+        if (bioCoreRef.current) bioCoreRef.current.rotation.y += delta * targetSpeed * 0.5
+        
+        // Reset positions (No Explosion)
+        if (casingRef.current) casingRef.current.position.y = THREE.MathUtils.lerp(casingRef.current.position.y, 0, 0.1)
+        // Allow X-Ray logic from Store to handle visibility if you have it, or just keep it solid
+    } 
+    
+    // --- BEHAVIOR 2: PRESENTATION MODE (Home Page) ---
+    else {
+        // Gentle Idle Spin
+        if (groupRef.current) groupRef.current.rotation.y += delta * 0.1
 
-    // 2. SCROLL ANIMATION (Explosion)
-    const explodeFactor = Math.min(1, scrollOffset * 2)
-
-    if (casingRef.current) casingRef.current.position.y = THREE.MathUtils.lerp(0, 2.5, explodeFactor)
-    if (bioCoreRef.current) bioCoreRef.current.position.y = THREE.MathUtils.lerp(0.5, 0.8, explodeFactor)
-    if (hepaRef.current) hepaRef.current.position.y = THREE.MathUtils.lerp(-0.8, -2.0, explodeFactor)
-    if (baseRef.current) baseRef.current.position.y = THREE.MathUtils.lerp(-1.4, -3.0, explodeFactor)
+        // SCROLL EXPLOSION logic
+        const explodeFactor = Math.min(1, scrollOffset * 2)
+        if (casingRef.current) casingRef.current.position.y = THREE.MathUtils.lerp(0, 2.5, explodeFactor)
+        if (bioCoreRef.current) bioCoreRef.current.position.y = THREE.MathUtils.lerp(0.5, 0.8, explodeFactor)
+        if (hepaRef.current) hepaRef.current.position.y = THREE.MathUtils.lerp(-0.8, -2.0, explodeFactor)
+        if (baseRef.current) baseRef.current.position.y = THREE.MathUtils.lerp(-1.4, -3.0, explodeFactor)
+    }
   })
 
   // Materials
@@ -62,68 +60,37 @@ function SeriesXTower({ scrollOffset }) {
   )
 }
 
-export default function SceneContent() {
-  // GRAB THE MODE FROM STORE
-  const { aqi, time, interactionMode } = useStore()
-  
-  const controlsRef = useRef()
+export default function SceneContent({ mode }) {
   const [scrollOffset, setScrollOffset] = useState(0)
-  const [atTop, setAtTop] = useState(true)
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY
-      const viewportHeight = window.innerHeight
-      const progress = Math.min(1, Math.max(0, scrollY / viewportHeight))
-      setScrollOffset(progress)
-      setAtTop(scrollY < 50) 
+    if (mode === 'presentation') {
+      const handleScroll = () => {
+        const scrollY = window.scrollY
+        const viewportHeight = window.innerHeight
+        const progress = Math.min(1, Math.max(0, scrollY / viewportHeight))
+        setScrollOffset(progress)
+      }
+      window.addEventListener('scroll', handleScroll)
+      return () => window.removeEventListener('scroll', handleScroll)
     }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const dayIntensity = Math.max(0.1, 1 - Math.abs(time - 12) / 6)
-  const isNight = time < 6 || time > 18
-  const cleanColor = isNight ? new THREE.Color('#000000') : new THREE.Color('#050505')
-  const pollutedColor = new THREE.Color('#2a1510')
-  const pollutionFactor = Math.min(1, aqi / 500)
-  const bgHex = cleanColor.lerp(pollutedColor, pollutionFactor)
+  }, [mode])
 
   return (
     <>
-      <color attach="background" args={[bgHex]} />
-      <fog attach="fog" args={[bgHex, 5, 25]} /> 
-      <TimeController />
-      
-      <hemisphereLight intensity={0.5} groundColor="#000000" />
-      <directionalLight position={[2, 5, 5]} intensity={1.5} color="white" />
-      <spotLight position={[5, 5, 5]} intensity={dayIntensity * 10} castShadow angle={0.5} penumbra={1} color="white" />
-      <spotLight position={[-5, 5, -5]} intensity={dayIntensity * 5} color="#00aaff" />
-      <pointLight position={[0, 0, -5]} intensity={5 + pollutionFactor * 10} color={aqi > 300 ? "#ff4400" : "#00ff88"} distance={10} />
-
-      <Environment preset="city" environmentIntensity={dayIntensity * 0.5} />
-
-      {/* FLOAT: Speed is 0 to prevent any fighting */}
-      <Float speed={atTop ? 2 : 0} rotationIntensity={0} floatIntensity={0.5}>
-        <SeriesXTower scrollOffset={scrollOffset} />
+      <Float speed={mode === 'interactive' ? 0 : 2} rotationIntensity={0} floatIntensity={0.5}>
+        <SeriesXTower scrollOffset={scrollOffset} mode={mode} />
       </Float>
 
       <ContactShadows resolution={1024} scale={20} blur={2} opacity={0.4} far={10} color="#000000" />
       
-      {/* 
-          --- THE FIX --- 
-          autoRotate={interactionMode === 'orbit'}
-          This is the built-in Three.js camera spinner. It works perfectly.
-      */}
+      {/* ORBIT CONTROLS: Only active in SIMULATION mode */}
       <OrbitControls 
-        ref={controlsRef}
-        enabled={atTop} 
+        enabled={mode === 'interactive'} 
         enableZoom={false} 
         enablePan={false} 
         minPolarAngle={Math.PI / 2.5} 
         maxPolarAngle={Math.PI / 1.5}
-        autoRotate={interactionMode === 'orbit'} 
-        autoRotateSpeed={2.0}
       />
     </>
   )
