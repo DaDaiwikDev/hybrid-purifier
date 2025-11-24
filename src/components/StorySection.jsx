@@ -1,54 +1,63 @@
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useRef } from 'react'
 
 export default function StorySection() {
+  const containerRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 0.8", "end 0.2"]
+  })
+
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [0, 1])
+  const y = useTransform(scrollYProgress, [0, 0.5], [50, 0])
+
   return (
-    <section className="relative w-full py-32 px-6 md:px-12 bg-black z-30">
-      <div className="max-w-5xl mx-auto">
+    <section ref={containerRef} className="relative w-full py-40 px-6 md:px-24 bg-black border-b border-white/5">
+      
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
         
-        {/* HEADER */}
-        <motion.span 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ margin: "-100px" }}
-          className="text-blue-500 font-mono text-xs uppercase tracking-[0.3em]"
-        >
-          The Invisible Enemy
-        </motion.span>
+        {/* Left: The Hook */}
+        <div>
+          <motion.div style={{ opacity, y }} className="space-y-8">
+            <h2 className="text-5xl md:text-7xl font-bold leading-[1.1] tracking-tight">
+              <span className="text-white/30">Air pollution is</span><br/>
+              <span className="text-white">The Invisible Enemy.</span>
+            </h2>
+            <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full" />
+          </motion.div>
+        </div>
 
-        {/* MAIN HEADLINE */}
-        <h2 className="text-5xl md:text-7xl font-bold text-white mt-6 leading-[1.1] tracking-tight">
-          <motion.span 
+        {/* Right: The Solution */}
+        <div className="space-y-12 text-lg md:text-xl leading-relaxed text-gray-400 font-light">
+          <motion.p 
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1 }}
-            className="block"
+            viewport={{ once: true }}
           >
-            Air pollution isn't just outside.
-          </motion.span>
-          <motion.span 
-            initial={{ opacity: 0 }} whileInView={{ opacity: 0.5 }} transition={{ duration: 1, delay: 0.2 }}
-            className="block text-white/50"
+            Traditional purifiers are passive. They wait for dust to come to them, clogging their filters within weeks. In cities like Delhi and Warangal, this is not enough.
+          </motion.p>
+          
+          <motion.p 
+            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1, delay: 0.2 }}
+            viewport={{ once: true }}
           >
-            It's in your living room.
-          </motion.span>
-        </h2>
+            <strong className="text-white font-bold">EKOSPAXES Series X</strong> is an active biological machine. It doesn't just trap pollutants; it digests them.
+          </motion.p>
 
-        {/* PARAGRAPH */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12">
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            className="text-xl text-gray-400 leading-relaxed"
+          <motion.ul 
+            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="space-y-4 font-mono text-sm text-white/60 border-l-2 border-white/10 pl-6"
           >
-            Standard purifiers are passive. They wait for air to come to them. 
-            <span className="text-white font-bold"> EKOSPAXES Series X</span> is active. 
-            It combines cyclonic separation, medical-grade HEPA, and a living Algae Bioreactor.
-          </motion.p>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-            className="text-xl text-gray-400 leading-relaxed"
-          >
-            It doesn't just filter. It <span className="text-emerald-400">regenerates</span>. 
-            Converting CO₂ into fresh Oxygen while stripping VOCs and Particulates.
-            Fully powered by the sun.
-          </motion.p>
+            <li className="flex items-center gap-3">
+              <span className="w-2 h-2 bg-blue-500 rounded-full" /> Cyclonic Pre-Filtration
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full" /> Algae CO₂ Sequestration
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="w-2 h-2 bg-white rounded-full" /> UV-C Sterilization
+            </li>
+          </motion.ul>
         </div>
 
       </div>

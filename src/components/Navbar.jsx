@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Logo from './Logo'
 
@@ -22,9 +23,13 @@ export default function Navbar() {
 
         {/* Links */}
         <div className="hidden md:flex gap-8 text-sm font-medium text-white/60">
-          <a href="#simulation" className="hover:text-white transition-colors">Simulation</a>
+          {/* Changed to Link for proper SPA navigation to your route */}
+          <Link to="/simulation" className="hover:text-white transition-colors">Simulation</Link>
+          
+          {/* Kept as anchor for scrolling to sections, or change to Link if it's a page */}
           <a href="#technology" className="hover:text-white transition-colors">Technology</a>
-          <a href="#specs" className="hover:text-white transition-colors">Specs</a>
+          
+          <Link to="/specs" className="hover:text-white transition-colors">Specifications</Link>
         </div>
 
         {/* CTA Button */}
