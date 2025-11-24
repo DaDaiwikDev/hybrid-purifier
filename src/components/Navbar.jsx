@@ -8,7 +8,7 @@ export default function Navbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8, ease: "circOut" }}
-      className="fixed top-0 left-0 w-full z-50 px-6 py-4 pointer-events-none" // Pointer events none so clicks pass through empty space
+      className="fixed top-0 left-0 w-full z-50 px-6 py-4 pointer-events-none" 
     >
       <div className="max-w-7xl mx-auto bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 flex justify-between items-center shadow-2xl pointer-events-auto">
         
@@ -23,12 +23,8 @@ export default function Navbar() {
 
         {/* Links */}
         <div className="hidden md:flex gap-8 text-sm font-medium text-white/60">
-          {/* Changed to Link for proper SPA navigation to your route */}
           <Link to="/simulation" className="hover:text-white transition-colors">Simulation</Link>
-          
-          {/* Kept as anchor for scrolling to sections, or change to Link if it's a page */}
           <a href="#technology" className="hover:text-white transition-colors">Technology</a>
-          
           <Link to="/specs" className="hover:text-white transition-colors">Specifications</Link>
         </div>
 

@@ -1,41 +1,30 @@
 import { useStore } from '../../store'
-import { useSimulationLogic } from '../../hooks/useSimulationLogic' // Importing our new hook!
-import { Wind, Microscope } from 'lucide-react'
+import { Activity, Wind, CloudFog } from 'lucide-react'
 
-function SensorCard({ label, value, unit, color }) {
-  return (
-    <div className="bg-black/40 border border-white/10 p-2.5 rounded-xl flex flex-col justify-between min-w-[90px] backdrop-blur-md hover:bg-white/5 transition-colors">
-      <span className="text-[9px] font-mono uppercase tracking-widest opacity-70">{label}</span>
-      <div className={`text-lg font-mono font-medium ${color}`}>{value} <span className="text-[10px] text-white/40 font-sans">{unit}</span></div>
-    </div>
-  )
-}
+const StatItem = ({ label, value, unit, color = "text-white" }) => (
+  <div className="flex flex-col">
+    <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider">{label}</span>
+    <span className={`text-xl font-bold font-mono ${color}`}>{value}<span className="text-xs text-white/30 ml-1">{unit}</span></span>
+  </div>
+)
 
 export default function TelemetryGrid() {
-  const { aqi, pm25, pm10, nox, sox } = useStore()
-  const { o2Gen, co2Level, phLevel, algaeHealth } = useSimulationLogic()
+  const { aqi, pm25, pm10, nox } = useStore()
+  
+  const statusColor = aqi < 50 ? 'text-emerald-400' : aqi < 150 ? 'text-yellow-400' : 'text-red-500'
 
   return (
-    <div className="pointer-events-auto hidden lg:block space-y-3">
-      {/* Atmosphere */}
-      <div className="glass-panel p-3 rounded-2xl bg-[#080808]/60 backdrop-blur-xl border border-white/10 w-[260px]">
-        <div className="flex items-center gap-2 mb-2 text-white/60 border-b border-white/5 pb-2"><Wind size={12} /><span className="text-[10px] font-bold uppercase tracking-widest">Atmosphere</span></div>
-        <div className="grid grid-cols-2 gap-2">
-          <SensorCard label="PM2.5" value={pm25} unit="µg" color="text-white" />
-          <SensorCard label="PM10" value={pm10} unit="µg" color="text-white" />
-          <SensorCard label="NOx" value={nox} unit="ppb" color={Number(nox)>10?"text-amber-400":"text-blue-200"} />
-          <SensorCard label="SOx" value={sox} unit="ppb" color={Number(sox)>5?"text-amber-400":"text-blue-200"} />
-        </div>
+    <div className="glass-panel p-6 rounded-3xl pointer-events-auto min-w-[280px]">
+      <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+        <Activity className={statusColor} size={20} />
+        <span className="font-mono text-sm text-white/60">LIVE TELEMETRY</span>
       </div>
-      {/* Bio-Core */}
-      <div className="glass-panel p-3 rounded-2xl bg-[#080808]/60 backdrop-blur-xl border border-white/10 w-[260px]">
-        <div className="flex items-center gap-2 mb-2 text-white/60 border-b border-white/5 pb-2"><Microscope size={12} /><span className="text-[10px] font-bold uppercase tracking-widest">Bio-System</span></div>
-        <div className="grid grid-cols-2 gap-2">
-          <SensorCard label="O2 GEN" value={o2Gen} unit="g/d" color="text-emerald-400" />
-          <SensorCard label="CO2" value={co2Level} unit="ppm" color="text-white" />
-          <SensorCard label="pH" value={phLevel} unit="" color="text-blue-200" />
-          <SensorCard label="HEALTH" value={algaeHealth} unit="%" color="text-emerald-200" />
-        </div>
+
+      <div className="grid grid-cols-2 gap-y-6 gap-x-8">
+        <StatItem label="AQI (US)" value={aqi} unit="" color={statusColor} />
+        <StatItem label="PM 2.5" value={pm25} unit="µg/m³" />
+        <StatItem label="PM 10" value={pm10} unit="µg/m³" />
+        <StatItem label="NOx" value={nox} unit="ppm" />
       </div>
     </div>
   )
